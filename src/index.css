@@ -1,13 +1,83 @@
-body {
+@import url("https://fonts.googleapis.com/css2?family=Lilita+One&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Readex+Pro:wght@160..700&display=swap");
+
+* {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Readex Pro", serif;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("./assets/images/bg-4.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  display: flex;
+  align-items: end;
+}
+
+.detail-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+}
+
+.detail-icon {
+  color: white;
+  padding: 10px;
+  border: 4px solid #f5e4bd;
+  background-color: #8e291d;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: #b54336;
+  }
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.hidden-checkbox {
+  display: none;
+}
+
+.custom-checkbox {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #8e291d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.custom-checkbox.spinning {
+  animation: spin 1s infinite linear;
+  background-color: #4caf50;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.1);
+  }
+}
+
+.label-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
 }

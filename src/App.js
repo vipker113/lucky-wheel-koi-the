@@ -1,25 +1,41 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import LuckyWheel from "./components/LuckyWheel";
+import { ParticlesComponent } from "./components/Particles";
+import { Detail } from "./components/Detail";
+import { Helmet } from "react-helmet";
+import { ResultProvider } from "./components/ResultContext";
 
-function App() {
+const Component = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ResultProvider>
+      <div className="container">
+        <Helmet>
+          <title>Koi Thé</title>
+          <link
+            rel="icon"
+            type="image/png"
+            href="assets/favicon/favicon-96x96.png"
+            sizes="96x96"
+          />
+          <link
+            rel="icon"
+            type="image/svg+xml"
+            href="assets/favicon/favicon.svg"
+          />
+          <link rel="shortcut icon" href="assets/favicon/favicon.ico" />
+          <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+          />
+          <link rel="manifest" href="/site.webmanifest" />
+        </Helmet>
+        <ParticlesComponent />
+        <LuckyWheel />
+        <Detail />
+      </div>
+    </ResultProvider>
   );
-}
+};
 
-export default App;
+export default Component;
