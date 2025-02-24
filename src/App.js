@@ -1,16 +1,16 @@
 import React from "react";
-import LuckyWheel from "./components/LuckyWheel";
-import { ParticlesComponent } from "./components/Particles";
-import { Detail } from "./components/Detail";
 import { Helmet } from "react-helmet";
 import { ResultProvider } from "./components/ResultContext";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/home";
+import Result from "./pages/result";
 
 const Component = () => {
   return (
     <ResultProvider>
       <div className="container">
         <Helmet>
-          <title>Koi Thé</title>
+          <title>KOI Thé</title>
           <link
             rel="icon"
             type="image/png"
@@ -30,9 +30,11 @@ const Component = () => {
           />
           <link rel="manifest" href="/site.webmanifest" />
         </Helmet>
-        <ParticlesComponent />
-        <LuckyWheel />
-        <Detail />
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/result" element={<Result />} />
+        </Routes>
       </div>
     </ResultProvider>
   );

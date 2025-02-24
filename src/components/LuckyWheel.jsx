@@ -3,9 +3,9 @@ import "./LuckyWheel.css";
 import { confetti } from "tsparticles-confetti";
 import axios from "axios";
 import Controls from "./CustomDropdown";
-import { convertPrize } from "../helper";
 import { useResult } from "./ResultContext";
 import AutoSpinCheckbox from "./AutoSpinCheckbox ";
+import { Detail } from "./Detail";
 
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -86,9 +86,8 @@ const LuckyWheel = () => {
         `${API_BASE_URL}/bingo?round=${selectedRound}&prize=${prizes[currentPrizeIndex]?.id}`
       );
 
-      setWinnerName(data.name);
       const newTargetNum = data.id.toString().padStart(3, "0");
-      setTargetNum(newTargetNum);
+
       setSpinCount((prev) => prev + 1);
 
       setRolling([true, true, true]);
@@ -106,12 +105,12 @@ const LuckyWheel = () => {
         const totalSpinTime = baseSpinTime + delayStop;
 
         setTimeout(() => {
-          const finalOffset = num * 180;
+          const finalOffset = num * 160;
           const slotElement = slotElements[index];
 
           slotElement.classList.remove("spinning");
           slotElement.style.transition =
-            "transform 1.5s cubic-bezier(0.22, 0.61, 0.36, 1)";
+            "transform 1.5s cubic-bezier(0.15, 0.15, 0.25, 1)";
           slotElement.style.transform = `translateY(-${finalOffset}px)`;
 
           setTimeout(() => {
@@ -158,6 +157,8 @@ const LuckyWheel = () => {
             winningNumbers: [...prev.winningNumbers, newTargetNum],
           };
         });
+        setTargetNum(newTargetNum);
+        setWinnerName(data.name);
       }, 4000);
       await fetchResult();
     } catch (error) {
@@ -171,23 +172,21 @@ const LuckyWheel = () => {
       const timeout = setTimeout(spinWheel, 2000);
       return () => clearTimeout(timeout);
     }
-  }, [isAutoSpin, isSpinning, stats.remainingSpins]);
+  }, [isSpinning, stats.remainingSpins]);
 
   return (
     <div className="lucky-wheel-container">
       <div className="lucky-wheel">
         <div className="info-container">
           <div style={{ flex: 1 }}>
-            <div className="info-winner">
-              <h3>Thông tin trúng thưởng</h3>
-              {showWinner && (
+            {showWinner ? (
+              <div className="info-winner">
                 <div className="info-winner-content">
-                  Chúc mừng <span>{winnerName}</span> đã trúng giải với số may
-                  mắn là
-                  <span> {targetNum}</span>
+                  Chúc mừng bạn <span>{winnerName}</span> Mã số
+                  <span> {targetNum}</span> đã trúng giải
                 </div>
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
           <div className="btn-control">
             <Controls
@@ -197,7 +196,6 @@ const LuckyWheel = () => {
               currentPrizeIndex={currentPrizeIndex}
               setCurrentPrizeIndex={setCurrentPrizeIndex}
               prizes={prizes}
-              convertPrize={convertPrize}
             />
             <div className="spin-container">
               <div className="spin-status">
@@ -206,21 +204,12 @@ const LuckyWheel = () => {
                   onClick={spinWheel}
                   disabled={isSpinning || stats.remainingSpins <= 0}
                 >
-                  <span style={{ marginTop: "18px" }}>Quay</span>
-                  <span style={{ fontSize: "18px" }}>
+                  <span>Quay</span>
+                  <span style={{ fontSize: "16px" }}>
                     {spinCount}/{prizes[currentPrizeIndex]?.quantity || 0}
                   </span>
                 </button>
               </div>
-              {/* <div className="checkbox-container">
-                <input
-                  type="checkbox"
-                  id="autoSpin"
-                  checked={isAutoSpin}
-                  onChange={handleToggleAutoSpin}
-                />
-                <label htmlFor="autoSpin">Quay tự động</label>
-              </div> */}
               <AutoSpinCheckbox onChange={handleToggleAutoSpin} />
             </div>
           </div>
@@ -241,7 +230,7 @@ const LuckyWheel = () => {
                   style={{
                     transform: rolling[index]
                       ? "none"
-                      : "translateY(-" + num * 180 + "px)",
+                      : "translateY(-" + num * 160 + "px)",
                   }}
                 >
                   {numbers.map((n) => (
@@ -255,6 +244,9 @@ const LuckyWheel = () => {
           </div>
         </div>
       </div>
+      <Detail
+        currentRound={rounds.find((round) => round.id === selectedRound)}
+      />
     </div>
   );
 };

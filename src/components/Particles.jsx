@@ -19,7 +19,7 @@ export const ParticlesComponent = () => {
       fpsLimit: 120,
       fullScreen: {
         enable: true,
-        zIndex: 0,
+        zIndex: -10,
       },
       interactivity: {
         events: {

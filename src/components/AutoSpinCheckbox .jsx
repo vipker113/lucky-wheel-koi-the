@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RotateCw } from "lucide-react";
+import { RotateCw, X } from "lucide-react";
 
 const AutoSpinCheckbox = ({ onChange = () => {} }) => {
   const [isChecked, setIsChecked] = useState(false);
@@ -22,7 +22,7 @@ const AutoSpinCheckbox = ({ onChange = () => {} }) => {
         className="hidden-checkbox"
       />
       <div className={`custom-checkbox ${isChecked ? "spinning" : ""}`}>
-        <RotateCw size={20} />
+        {isChecked ? <RotateCw /> : <X />}
       </div>
       <span className="label-text">Tự động quay</span>
     </label>

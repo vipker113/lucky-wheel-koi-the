@@ -1,12 +1,10 @@
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Tabs,
-  Tab,
-  Box,
   Typography,
   Table,
   TableBody,
@@ -15,43 +13,70 @@ import {
   TableHead,
   TableRow,
   Paper,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  TextField,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import { FileText } from "lucide-react";
-import axios from "axios";
+import { FileText, Gift } from "lucide-react";
 import { useResult } from "./ResultContext";
+import { useNavigate } from "react-router-dom";
 
-export const Detail = () => {
+export const Detail = ({ currentRound }) => {
   const [showStatsModal, setShowStatsModal] = useState(false);
-  const [rounds, setRounds] = useState([]);
-  const [selectedTab, setSelectedTab] = useState(0);
-
+  const [selectedPrize, setSelectedPrize] = useState("Tất cả");
+  const [searchQuery, setSearchQuery] = useState("");
   const { result } = useResult();
 
-  const fetchRounds = async () => {
-    try {
-      const { data } = await axios.get(
-        "https://koi-lottery-api.azurewebsites.net/rounds"
-      );
-      setRounds(data.map((item) => item.name));
-    } catch (error) {
-      console.error("Error fetching rounds:", error);
-    }
-  };
+  const navigate = useNavigate();
+
+  const filteredResults = useMemo(
+    () =>
+      currentRound
+        ? result
+            .filter((item) => item.round === currentRound.name)
+            .sort((a, b) => a.roundId - b.roundId)
+        : [],
+    [currentRound, result]
+  );
+
+  const uniquePrizes = useMemo(
+    () => ["Tất cả", ...new Set(filteredResults.map((item) => item.prize))],
+    [filteredResults]
+  );
 
   useEffect(() => {
-    fetchRounds();
-  }, []);
+    if (showStatsModal) {
+      setSelectedPrize("Tất cả");
+      setSearchQuery("");
+    }
+  }, [showStatsModal]);
 
-  const getResultsByRound = (roundName) => {
-    return result.filter((item) => item.round === roundName);
-  };
+  if (!currentRound) {
+    return null;
+  }
+
+  const displayedResults = filteredResults
+    .filter((item) =>
+      selectedPrize === "Tất cả" ? true : item.prize === selectedPrize
+    )
+    .filter((item) =>
+      [item.employeeId, item.employeeName, item.employeePhone, item.prize]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    );
 
   return (
     <div className="detail-container">
+      <div className="detail-icon" onClick={() => navigate("/result")}>
+        <Gift />
+      </div>
       <div className="detail-icon" onClick={() => setShowStatsModal(true)}>
         <FileText />
       </div>
+
       <Dialog
         open={showStatsModal}
         onClose={() => setShowStatsModal(false)}
@@ -59,96 +84,109 @@ export const Detail = () => {
         maxWidth="lg"
       >
         <DialogTitle
-          style={{
-            textAlign: "center",
-            fontSize: "24px",
-            fontWeight: "bold",
-          }}
+          style={{ textAlign: "center", fontSize: "24px", fontWeight: "bold" }}
         >
-          THỐNG KÊ QUAY THƯỞNG
+          Kết quả vòng quay của giải {currentRound.name}
         </DialogTitle>
         <DialogContent>
-          {rounds.length > 0 ? (
+          {filteredResults.length > 0 ? (
             <>
-              <Tabs
-                value={selectedTab}
-                onChange={(e, newValue) => setSelectedTab(newValue)}
-                centered
+              <div
+                className="filter-container"
+                style={{
+                  display: "flex",
+                  gap: "16px",
+                  flexWrap: "wrap",
+                  marginTop: "16px",
+                }}
               >
-                {rounds.map((round, index) => (
-                  <Tab key={index} label={`Vòng ${round}`} />
-                ))}
-              </Tabs>
-              <Box p={2}>
-                {rounds.map((round, index) => (
-                  <div key={index} hidden={selectedTab !== index}>
-                    {getResultsByRound(round).length > 0 ? (
-                      <TableContainer
-                        component={Paper}
-                        sx={{ maxHeight: 400, overflow: "auto" }}
-                      >
-                        <Table stickyHeader>
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>
-                                <b>STT</b>
-                              </TableCell>
-                              <TableCell>
-                                <b>Mã nhân viên</b>
-                              </TableCell>
-                              <TableCell>
-                                <b>Tên nhân viên</b>
-                              </TableCell>
+                <FormControl variant="outlined" sx={{ minWidth: 200, flex: 2 }}>
+                  <InputLabel id="prize-select-label">
+                    Chọn giải thưởng
+                  </InputLabel>
+                  <Select
+                    labelId="prize-select-label"
+                    value={selectedPrize}
+                    onChange={(e) => setSelectedPrize(e.target.value)}
+                    label="Chọn giải thưởng"
+                    sx={{ backgroundColor: "white" }}
+                  >
+                    {uniquePrizes.map((prize, index) => (
+                      <MenuItem key={index} value={prize}>
+                        {prize}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-                              <TableCell>
-                                <b>Số điện thoại</b>
-                              </TableCell>
-                              <TableCell>
-                                <b>Giải thưởng</b>
-                              </TableCell>
-                              <TableCell>
-                                <b>Thời gian</b>
-                              </TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {getResultsByRound(round).map((res, i) => (
-                              <TableRow key={i}>
-                                <TableCell>{i + 1}</TableCell>
-                                <TableCell>{res.employeeId}</TableCell>
-                                <TableCell>{res.employeeName}</TableCell>
-                                <TableCell>{res.employeePhone}</TableCell>
-                                <TableCell
-                                  style={{
-                                    width: "250px",
-                                  }}
-                                >
-                                  {res.prize}
-                                </TableCell>
-                                <TableCell>
-                                  {new Date(res.createdAt).toLocaleString()}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
+                <TextField
+                  label="Tìm kiếm"
+                  variant="outlined"
+                  fullWidth
+                  sx={{ flex: 1 }}
+                  placeholder="Nhập mã nhân viên, tên, SĐT hoặc giải thưởng..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <TableContainer
+                component={Paper}
+                sx={{ maxHeight: 400, overflow: "auto" }}
+              >
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>
+                        <b>STT</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Mã nhân viên</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Tên nhân viên</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Số điện thoại</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Giải thưởng</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Thời gian</b>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {displayedResults.length > 0 ? (
+                      displayedResults.map((res, i) => (
+                        <TableRow key={i}>
+                          <TableCell>{i + 1}</TableCell>
+                          <TableCell>{res.employeeId}</TableCell>
+                          <TableCell>{res.employeeName}</TableCell>
+                          <TableCell>{res.employeePhone}</TableCell>
+                          <TableCell style={{ width: "250px" }}>
+                            {res.prize}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(res.createdAt).toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))
                     ) : (
-                      <Typography
-                        variant="body1"
-                        color="textSecondary"
-                        sx={{ mt: 2 }}
-                      >
-                        Chưa có kết quả cho giải thưởng này
-                      </Typography>
+                      <TableRow>
+                        <TableCell colSpan={6} style={{ textAlign: "center" }}>
+                          Không có kết quả phù hợp.
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </div>
-                ))}
-              </Box>
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </>
           ) : (
             <Typography variant="body1" color="textSecondary">
-              Không có dữ liệu vòng quay nào.
+              Chưa có kết quả cho vòng quay này.
             </Typography>
           )}
         </DialogContent>

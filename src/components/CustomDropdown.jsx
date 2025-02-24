@@ -8,31 +8,30 @@ export default function Controls({
   currentPrizeIndex,
   setCurrentPrizeIndex,
   prizes,
-  convertPrize,
 }) {
   const customStyles = {
     control: (provided) => ({
       ...provided,
-      minWidth: "fit-content",
-      width: "440px",
+      minWidth: "240px",
       fontWeight: "900",
-      border: "4px solid #f5e4bd",
+      maxWidth: "600px",
+      border: "3px solid #f5e4bd",
       height: "60px",
       textAlign: "center",
-      backgroundColor: "#8e291d",
+      backgroundColor: "#3b5b5a",
       textTransform: "uppercase",
       color: "#f5e4bd",
       borderRadius: "8px",
-      fontSize: "28px",
+      fontSize: "24px",
       cursor: "pointer",
       outline: "none",
     }),
     menu: (provided) => ({
       ...provided,
+      maxWidth: "600px",
       whiteSpace: "normal",
       wordWrap: "break-word",
-      width: "440px",
-      backgroundColor: "#8e291d",
+      backgroundColor: "#3b5b5a",
       zIndex: 10,
     }),
     option: (provided, state) => ({
@@ -41,11 +40,11 @@ export default function Controls({
       whiteSpace: "pre-wrap",
       overflowWrap: "break-word",
       cursor: "pointer",
-      color: state.isSelected ? "#8e291d" : "#f5e4bd",
-      backgroundColor: state.isSelected ? "#f5e4bd" : "#8e291d",
+      color: state.isSelected ? "#3b5b5a" : "#f5e4bd",
+      backgroundColor: state.isSelected ? "#f5e4bd" : "#3b5b5a",
       ":hover": {
         backgroundColor: "#f5e4bd",
-        color: "#8e291d",
+        color: "#3b5b5a",
       },
     }),
     singleValue: (provided) => ({
@@ -54,30 +53,47 @@ export default function Controls({
     }),
   };
 
+  const roundNamme = rounds.find((r) => r.id === selectedRound);
+  const currentPrize = prizes[currentPrizeIndex];
+
   return (
     <div className="controls">
-      <div className="custom-dropdown">
+      <div className="custom-dropdown" title={roundNamme && roundNamme.name}>
         <Select
-          value={rounds.find((r) => r.id === selectedRound)}
+          value={roundNamme}
           onChange={(selected) => setSelectedRound(selected.id)}
           options={rounds}
-          getOptionLabel={(round) => `Giải ${convertPrize(round.name)}`}
+          getOptionLabel={(round) => `Giải ${round.name}`}
           getOptionValue={(round) => round.id}
           styles={customStyles}
           menuPlacement="auto"
         />
       </div>
 
-      <div className="custom-dropdown">
+      <div
+        className="custom-dropdown"
+        title={currentPrize && currentPrize.name}
+      >
         <Select
-          value={prizes[currentPrizeIndex]}
+          value={currentPrize}
           onChange={(selected) =>
             setCurrentPrizeIndex(prizes.findIndex((p) => p.id === selected.id))
           }
           options={prizes}
           getOptionLabel={(prize) => prize.name}
           getOptionValue={(prize) => prize.id}
-          styles={customStyles}
+          styles={{
+            ...customStyles,
+            menu: (provided) => ({
+              ...provided,
+              minWidth: "400px",
+              maxWidth: "600px",
+              whiteSpace: "normal",
+              wordWrap: "break-word",
+              backgroundColor: "#3b5b5a",
+              zIndex: 10,
+            }),
+          }}
           menuPlacement="auto"
         />
       </div>
