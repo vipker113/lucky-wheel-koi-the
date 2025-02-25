@@ -7,14 +7,11 @@ import { useResult } from "./ResultContext";
 import AutoSpinCheckbox from "./AutoSpinCheckbox ";
 import { Detail } from "./Detail";
 
-const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
 const LuckyWheel = () => {
   const [rounds, setRounds] = useState([]);
   const [selectedRound, setSelectedRound] = useState(1);
   const [prizes, setPrizes] = useState([]);
   const [targetNum, setTargetNum] = useState("000");
-  const [rolling, setRolling] = useState([false, false, false]);
   const [result, setResult] = useState(["0", "0", "0"]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [stats, setStats] = useState({
@@ -22,7 +19,7 @@ const LuckyWheel = () => {
     remainingSpins: 0,
     winningNumbers: [],
   });
-  const [spinCount, setSpinCount] = useState(0);
+  const [spinCount, setSpinCount] = useState(null);
   const [currentPrizeIndex, setCurrentPrizeIndex] = useState(0);
   const [winnerName, setWinnerName] = useState("");
   const [showWinner, setShowWinner] = useState(false);
@@ -45,7 +42,7 @@ const LuckyWheel = () => {
     if (selectedRound) {
       fetchPrizes(selectedRound);
     }
-  }, [selectedRound]);
+  }, [selectedRound, currentPrizeIndex]);
 
   const fetchRounds = async () => {
     try {
@@ -64,7 +61,7 @@ const LuckyWheel = () => {
       );
 
       setPrizes(data);
-      setSpinCount(0);
+      setSpinCount(data[currentPrizeIndex]?.drawnQuantity || 0);
 
       setStats((prev) => ({
         ...prev,
@@ -87,45 +84,32 @@ const LuckyWheel = () => {
       );
 
       const newTargetNum = data.id.toString().padStart(3, "0");
-
       setSpinCount((prev) => prev + 1);
 
-      setRolling([true, true, true]);
+      const animationInterval = 20;
+      const animations = [null, null, null];
 
-      const slotElements = document.querySelectorAll(".number-slot");
-      slotElements.forEach((el) => {
-        el.classList.add("spinning");
-        el.style.transform = "translateY(0)";
-        el.style.transition = "none";
+      newTargetNum.split("").forEach((_, index) => {
+        animations[index] = setInterval(() => {
+          setResult((prev) => {
+            const newResult = [...prev];
+            newResult[index] = Math.floor(Math.random() * 10).toString();
+            return newResult;
+          });
+        }, animationInterval);
       });
 
-      const baseSpinTime = 2000;
-      newTargetNum.split("").forEach((num, index) => {
-        const delayStop = index * 1000;
-        const totalSpinTime = baseSpinTime + delayStop;
+      newTargetNum.split("").forEach((targetDigit, index) => {
+        const stopDelay = 2000 + index * 1000;
 
         setTimeout(() => {
-          const finalOffset = num * 160;
-          const slotElement = slotElements[index];
-
-          slotElement.classList.remove("spinning");
-          slotElement.style.transition =
-            "transform 1.5s cubic-bezier(0.15, 0.15, 0.25, 1)";
-          slotElement.style.transform = `translateY(-${finalOffset}px)`;
-
-          setTimeout(() => {
-            setRolling((prev) => {
-              const newRolling = [...prev];
-              newRolling[index] = false;
-              return newRolling;
-            });
-            setResult((prev) => {
-              const newResult = [...prev];
-              newResult[index] = num;
-              return newResult;
-            });
-          }, 1500);
-        }, totalSpinTime);
+          clearInterval(animations[index]);
+          setResult((prev) => {
+            const newResult = [...prev];
+            newResult[index] = targetDigit;
+            return newResult;
+          });
+        }, stopDelay);
       });
 
       setTimeout(() => {
@@ -136,7 +120,6 @@ const LuckyWheel = () => {
         });
 
         setShowWinner(true);
-
         setStats((prev) => {
           const newRemainingSpins = prev.remainingSpins - 1;
 
@@ -160,6 +143,7 @@ const LuckyWheel = () => {
         setTargetNum(newTargetNum);
         setWinnerName(data.name);
       }, 4000);
+
       await fetchResult();
     } catch (error) {
       console.error("Error spinning wheel:", error);
@@ -225,20 +209,7 @@ const LuckyWheel = () => {
           <div className="number-container">
             {result.map((num, index) => (
               <div key={index} className="number-wrapper">
-                <div
-                  className="number-slot"
-                  style={{
-                    transform: rolling[index]
-                      ? "none"
-                      : "translateY(-" + num * 160 + "px)",
-                  }}
-                >
-                  {numbers.map((n) => (
-                    <div key={n} className="number">
-                      {n}
-                    </div>
-                  ))}
-                </div>
+                <div className="number">{num}</div>
               </div>
             ))}
           </div>

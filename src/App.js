@@ -4,6 +4,7 @@ import { ResultProvider } from "./components/ResultContext";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import Result from "./pages/result";
+import { Vote } from "./pages/vote";
 
 const Component = () => {
   return (
@@ -34,6 +35,7 @@ const Component = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/result" element={<Result />} />
+          <Route path="/vote" element={<Vote />} />
         </Routes>
       </div>
     </ResultProvider>
