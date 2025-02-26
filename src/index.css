@@ -31,7 +31,8 @@
   justify-content: center;
 }
 
-.result-page {
+.result-page,
+.vote-page {
   background-image: url("./assets/images/bg-result.jpg");
   margin-top: auto;
   background-position: center;
@@ -62,6 +63,10 @@
     justify-content: center;
     gap: 20px;
   }
+}
+
+.vote-page {
+  background-image: url("./assets/images/bg-vote.jpg");
 }
 
 .detail-container {
