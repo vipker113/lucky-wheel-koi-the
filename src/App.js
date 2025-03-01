@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import Result from "./pages/result";
 import { Vote } from "./pages/vote";
+import { VoteResult } from "./pages/vote-result";
 
 const Component = () => {
   return (
@@ -36,6 +37,7 @@ const Component = () => {
           <Route path="/" element={<Home />} />
           <Route path="/result" element={<Result />} />
           <Route path="/vote" element={<Vote />} />
+          <Route path="/vote-result" element={<VoteResult />} />
         </Routes>
       </div>
     </ResultProvider>

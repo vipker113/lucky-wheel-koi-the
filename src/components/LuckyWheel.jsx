@@ -1,91 +1,75 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./LuckyWheel.css";
 import { confetti } from "tsparticles-confetti";
 import axios from "axios";
-import Controls from "./CustomDropdown";
-import { useResult } from "./ResultContext";
-import AutoSpinCheckbox from "./AutoSpinCheckbox ";
-import { Detail } from "./Detail";
+import useWindowSize from "../hook/useWindowSize";
+import CustomDropDown from "./CustomDropdown";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
+import { FileText, Gift, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
-const LuckyWheel = () => {
-  const [rounds, setRounds] = useState([]);
-  const [selectedRound, setSelectedRound] = useState(1);
-  const [prizes, setPrizes] = useState([]);
+const LuckyWheel = ({ prizes, onSpinComplete, isLoading }) => {
+  const [selectedPrize, setSelectedPrize] = useState(prizes[0]);
   const [targetNum, setTargetNum] = useState("000");
-  const [result, setResult] = useState(["0", "0", "0"]);
+  const [result, setResult] = useState(["4", "3", "0"]);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [stats, setStats] = useState({
-    totalSpins: 0,
-    remainingSpins: 0,
-    winningNumbers: [],
-  });
-  const [spinCount, setSpinCount] = useState(null);
-  const [currentPrizeIndex, setCurrentPrizeIndex] = useState(0);
+  const [spinCount, setSpinCount] = useState(selectedPrize?.drawnQuantity || 0);
   const [winnerName, setWinnerName] = useState("");
   const [showWinner, setShowWinner] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [spinResults, setSpinResults] = useState([]);
+  const [currentSpinPrize, setCurrentSpinPrize] = useState(null);
 
-  const [isAutoSpin, setIsAutoSpin] = useState(false);
-
-  const { fetchResult } = useResult();
-
-  const handleToggleAutoSpin = () => {
-    setIsAutoSpin((prev) => !prev);
-  };
+  const navigate = useNavigate();
 
   const API_BASE_URL = "https://koi-lottery-api.azurewebsites.net";
 
   useEffect(() => {
-    fetchRounds();
-  }, []);
-
-  useEffect(() => {
-    if (selectedRound) {
-      fetchPrizes(selectedRound);
+    const availablePrize = prizes.find(
+      (prize) => prize.drawnQuantity < prize.quantity
+    );
+    if (availablePrize) {
+      setSelectedPrize(availablePrize);
+      setSpinCount(availablePrize.drawnQuantity);
     }
-  }, [selectedRound, currentPrizeIndex]);
-
-  const fetchRounds = async () => {
-    try {
-      const { data } = await axios.get(`${API_BASE_URL}/rounds`);
-
-      setRounds(data);
-    } catch (error) {
-      console.error("Error fetching rounds:", error);
-    }
-  };
-
-  const fetchPrizes = async (roundId) => {
-    try {
-      const { data } = await axios.get(
-        `${API_BASE_URL}/rounds/${roundId}/prizes`
-      );
-
-      setPrizes(data);
-      setSpinCount(data[currentPrizeIndex]?.drawnQuantity || 0);
-
-      setStats((prev) => ({
-        ...prev,
-        remainingSpins: data[0]?.quantity || 0,
-        totalSpins: data[0]?.quantity || 0,
-      }));
-    } catch (error) {
-      console.error("Error fetching prizes:", error);
-    }
-  };
+  }, [prizes]);
 
   const spinWheel = async () => {
-    if (isSpinning || stats.remainingSpins <= 0) return;
-
+    if (isSpinning || !selectedPrize) return;
     setIsSpinning(true);
+    setCurrentSpinPrize(selectedPrize);
+
+    const remainingSpins = selectedPrize.quantity - spinCount;
+    let allResults = [];
+    let lastResult;
 
     try {
-      const { data } = await axios.post(
-        `${API_BASE_URL}/bingo?round=${selectedRound}&prize=${prizes[currentPrizeIndex]?.id}`
-      );
+      for (let i = 0; i < remainingSpins; i++) {
+        const { data } = await axios.post(
+          `${API_BASE_URL}/bingo?round=${selectedPrize.id_round}&prize=${selectedPrize.id}`
+        );
+        allResults.push(data);
+        lastResult = data;
+        setSpinCount((prev) => prev + 1);
+      }
 
-      const newTargetNum = data.id.toString().padStart(3, "0");
-      setSpinCount((prev) => prev + 1);
-
+      const newTargetNum = lastResult.id.toString().padStart(3, "0");
       const animationInterval = 20;
       const animations = [null, null, null];
 
@@ -101,7 +85,6 @@ const LuckyWheel = () => {
 
       newTargetNum.split("").forEach((targetDigit, index) => {
         const stopDelay = 2000 + index * 1000;
-
         setTimeout(() => {
           clearInterval(animations[index]);
           setResult((prev) => {
@@ -112,7 +95,7 @@ const LuckyWheel = () => {
         }, stopDelay);
       });
 
-      setTimeout(() => {
+      setTimeout(async () => {
         confetti({
           particleCount: 100,
           spread: 70,
@@ -120,104 +103,202 @@ const LuckyWheel = () => {
         });
 
         setShowWinner(true);
-        setStats((prev) => {
-          const newRemainingSpins = prev.remainingSpins - 1;
-
-          if (newRemainingSpins <= 0 && currentPrizeIndex < prizes.length - 1) {
-            setCurrentPrizeIndex((prevIndex) => prevIndex + 1);
-            setSpinCount(0);
-            setIsSpinning(false);
-            return {
-              ...prev,
-              remainingSpins: prizes[currentPrizeIndex + 1]?.quantity || 0,
-            };
-          }
-
-          setIsSpinning(false);
-          return {
-            ...prev,
-            remainingSpins: newRemainingSpins,
-            winningNumbers: [...prev.winningNumbers, newTargetNum],
-          };
-        });
         setTargetNum(newTargetNum);
-        setWinnerName(data.name);
-      }, 4000);
+        setWinnerName(lastResult.name);
+        setIsSpinning(false);
+        setSpinResults(allResults);
+        if (selectedPrize.quantity !== 1) {
+          setShowStatsModal(true);
+        }
 
-      await fetchResult();
+        await onSpinComplete();
+        setSelectedPrize(prizes[0]);
+        setSpinCount(prizes[0]?.drawnQuantity || 0);
+      }, 4000);
     } catch (error) {
       console.error("Error spinning wheel:", error);
       setIsSpinning(false);
     }
   };
 
-  useEffect(() => {
-    if (isAutoSpin && !isSpinning && stats.remainingSpins > 0) {
-      const timeout = setTimeout(spinWheel, 2000);
-      return () => clearTimeout(timeout);
-    }
-  }, [isSpinning, stats.remainingSpins]);
+  const { width, height } = useWindowSize();
+  const widthNumber = width / 7;
+  const heightNumber = height / 3.5;
 
   return (
     <div className="lucky-wheel-container">
       <div className="lucky-wheel">
         <div className="info-container">
           <div style={{ flex: 1 }}>
-            {showWinner ? (
+            {showWinner && (
               <div className="info-winner">
                 <div className="info-winner-content">
                   Chúc mừng bạn <span>{winnerName}</span> Mã số
                   <span> {targetNum}</span> đã trúng giải
                 </div>
               </div>
-            ) : null}
+            )}
           </div>
           <div className="btn-control">
-            <Controls
-              selectedRound={selectedRound}
-              setSelectedRound={setSelectedRound}
-              rounds={rounds}
-              currentPrizeIndex={currentPrizeIndex}
-              setCurrentPrizeIndex={setCurrentPrizeIndex}
+            <CustomDropDown
               prizes={prizes}
+              selectedPrize={selectedPrize}
+              setSelectedPrize={setSelectedPrize}
+              onPrizeSelect={setSelectedPrize}
+              isLoading={isLoading}
+              isSpinning={isSpinning}
             />
             <div className="spin-container">
               <div className="spin-status">
                 <button
                   className="spin-button"
                   onClick={spinWheel}
-                  disabled={isSpinning || stats.remainingSpins <= 0}
+                  disabled={
+                    isSpinning ||
+                    !selectedPrize ||
+                    spinCount >= selectedPrize.quantity
+                  }
                 >
                   <span>Quay</span>
                   <span style={{ fontSize: "16px" }}>
-                    {spinCount}/{prizes[currentPrizeIndex]?.quantity || 0}
+                    {spinCount}/{selectedPrize?.quantity || 0}
                   </span>
                 </button>
               </div>
-              <AutoSpinCheckbox onChange={handleToggleAutoSpin} />
             </div>
           </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "40px",
-          }}
-        >
-          <div className="number-container">
-            {result.map((num, index) => (
-              <div key={index} className="number-wrapper">
-                <div className="number">{num}</div>
-              </div>
-            ))}
-          </div>
+        <div className="number-container">
+          {result.map((num, index) => (
+            <div
+              key={index}
+              className="number-wrapper"
+              style={{ width: widthNumber, height: heightNumber }}
+            >
+              <div className="number">{num}</div>
+            </div>
+          ))}
         </div>
       </div>
-      <Detail
-        currentRound={rounds.find((round) => round.id === selectedRound)}
-      />
+      <div className="detail-container">
+        <div className="detail-icon" onClick={() => navigate("/result")}>
+          <Gift />
+        </div>
+        <div className="detail-icon" onClick={() => setShowStatsModal(true)}>
+          <FileText />
+        </div>
+      </div>
+      <Dialog
+        open={showStatsModal}
+        onClose={() => setShowStatsModal(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          component: motion.div,
+          initial: { opacity: 0, scale: 0.8 },
+          animate: { opacity: 1, scale: 1 },
+          exit: { opacity: 0, scale: 0.8 },
+          transition: { duration: 0.3 },
+          style: {
+            backgroundColor: "#f5e4bd",
+            color: "#3b5b5a",
+            borderRadius: "12px",
+            padding: "16px",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontWeight: "bold",
+            backgroundColor: "#ebd6a5",
+            borderRadius: "12px",
+            padding: "12px 20px",
+          }}
+        >
+          Kết quả quay thưởng:
+          <strong style={{ color: "#a74844" }}>{currentSpinPrize?.name}</strong>
+          <IconButton
+            onClick={() => setShowStatsModal(false)}
+            sx={{ color: "#a74844" }}
+          >
+            <X size={24} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ marginTop: "16px" }}>
+          {spinResults.length > 0 ? (
+            <TableContainer
+              component={Paper}
+              sx={{
+                maxHeight: 400,
+                overflow: "auto",
+                backgroundColor: "white",
+                borderRadius: "8px",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {["STT", "Mã số", "Tên nhân viên", "Giải thưởng"].map(
+                      (text, index) => (
+                        <TableCell
+                          key={index}
+                          sx={{
+                            fontWeight: "bold",
+                            color: "white",
+                            backgroundColor: "#3b5b5a",
+                            textAlign: "center",
+                            padding: "12px",
+                          }}
+                        >
+                          {text}
+                        </TableCell>
+                      )
+                    )}
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {spinResults.map((result, index) => (
+                    <TableRow
+                      key={index}
+                      sx={{
+                        backgroundColor: "white",
+                      }}
+                    >
+                      {[
+                        index + 1,
+                        result.id.toString().padStart(3, "0"),
+                        result.name,
+                        currentSpinPrize?.name,
+                      ].map((text, index) => (
+                        <TableCell
+                          key={index}
+                          sx={{
+                            textAlign: "center",
+                            padding: "10px",
+                          }}
+                        >
+                          {text}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Typography variant="body1" color="textSecondary">
+              Chưa có kết quả cho vòng quay này.
+            </Typography>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

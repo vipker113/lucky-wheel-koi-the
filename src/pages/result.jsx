@@ -127,18 +127,13 @@ const LotteryResults = () => {
   return (
     <div className="result-page">
       {isInitialLoading ? (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="100vh"
-        >
+        <Box display="flex" justifyContent="center" alignItems="center">
           <CircularProgress size={60} />
         </Box>
       ) : (
         <div className="result-container">
           <h1>THỐNG KÊ QUAY THƯỞNG</h1>
-          <Box sx={{ p: 2 }}>
+          <Box sx={{ p: 2, width: "100%" }}>
             <div
               style={{
                 display: "flex",
@@ -201,14 +196,19 @@ const LotteryResults = () => {
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
-                minHeight="200px"
+                minHeight={500}
               >
                 <CircularProgress />
               </Box>
             ) : filterResults().length > 0 ? (
               <TableContainer
                 component={Paper}
-                sx={{ maxHeight: 500, overflow: "auto", borderRadius: "8px" }}
+                sx={{
+                  minHeight: 500,
+                  maxHeight: 500,
+                  overflow: "auto",
+                  borderRadius: "8px",
+                }}
               >
                 <Table stickyHeader>
                   <TableHead>
@@ -221,9 +221,6 @@ const LotteryResults = () => {
                       </TableCell>
                       <TableCell>
                         <b>Tên nhân viên</b>
-                      </TableCell>
-                      <TableCell>
-                        <b>Số điện thoại</b>
                       </TableCell>
                       <TableCell>
                         <b>Giải thưởng</b>
@@ -239,7 +236,6 @@ const LotteryResults = () => {
                         <TableCell>{i + 1}</TableCell>
                         <TableCell>{res.employeeId}</TableCell>
                         <TableCell>{res.employeeName}</TableCell>
-                        <TableCell>{res.employeePhone}</TableCell>
                         <TableCell style={{ width: "250px" }}>
                           {res.prize}
                         </TableCell>
@@ -255,7 +251,7 @@ const LotteryResults = () => {
               <Typography
                 variant="body1"
                 color="textSecondary"
-                sx={{ mt: 2, color: "white" }}
+                sx={{ mt: 2, color: "white", height: 500 }}
               >
                 Chưa có kết quả cho giải thưởng này
               </Typography>

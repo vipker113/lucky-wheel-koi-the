@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   TextField,
@@ -7,8 +7,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Paper,
-  Container,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,34 +16,25 @@ import {
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import img1 from "../assets/images/1.jpeg";
+import imgBanner from "../assets/images/img-banner.jpg";
+import { Check } from "lucide-react";
 
 export const Vote = () => {
   const API_BASE_URL = "https://koi-lottery-api.azurewebsites.net";
   const [phoneNumber, setPhoneNumber] = useState("");
   const [performances, setPerformances] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
   const [selectedPerformance, setSelectedPerformance] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    fetchPerformances();
+  }, []);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { data } = await axios.get(
-        `${API_BASE_URL}/employees/${phoneNumber}`
-      );
-      if (data) {
-        await fetchPerformances();
-        setIsVerified(true);
-      }
-    } catch (error) {
-      toast.error("Số điện thoại / mã số nhân viên không hợp lệ!");
-    } finally {
-      setIsLoading(false);
-    }
+    setIsVerified(true);
   };
 
   const handlePerformanceClick = (performanceId) => {
@@ -58,13 +47,11 @@ export const Vote = () => {
   const handleVoteConfirm = async () => {
     setIsVoting(true);
     setOpenDialog(false);
-
     try {
       await axios.post(
         `${API_BASE_URL}/votes?idOrPhone=${phoneNumber}&performanceId=${selectedPerformance}`
       );
       toast.success("Bạn đã vote thành công cho tiết mục " + performancesName);
-      setOpenDialog(false);
       setSelectedPerformance(null);
     } catch (error) {
       toast.error("Bạn đã hết lượt vote!");
@@ -84,91 +71,96 @@ export const Vote = () => {
 
   return (
     <div className="vote-page">
-      <Container maxWidth="sm" style={{ marginTop: "2rem" }}>
-        <Paper
-          elevation={3}
+      {!isVerified ? (
+        <div
           style={{
             padding: "2rem",
-            backgroundColor: "rgba(222, 159, 156, 0.8)",
+            maxWidth: "400px",
+            margin: "auto",
+            backgroundColor: "rgba(255, 255, 255, 0.5)",
             borderRadius: "12px",
-            marginTop: "10%",
-            border: "4px solid #f5e4bd",
           }}
         >
-          {!isVerified ? (
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Số điện thoại / Mã nhân viên"
-                variant="outlined"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                sx={{
-                  marginBottom: 2,
-                  backgroundColor: "#f5e4bd",
-                  borderRadius: "4px",
-                  "& label": {
-                    color: "#3b5b5a",
-                    fontWeight: 500,
-                  },
-                  "& label.Mui-focused": {
-                    color: "#3b5b5a",
-                    fontSize: "1.1rem",
-                    fontWeight: 600,
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#3b5b5a",
-                      borderWidth: "2px",
-                    },
-                  },
-                }}
-              />
-              <Button
-                fullWidth
-                variant="contained"
-                type="submit"
-                disabled={isLoading}
-                style={{
-                  color: "white",
-                  height: "48px",
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Số vé"
+              variant="outlined"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              sx={{
+                marginBottom: 2,
+                backgroundColor: "#f5e4bd",
+                borderRadius: "4px",
+                "& label": {
+                  color: "#3b5b5a",
+                  fontWeight: 500,
+                },
+                "& label.Mui-focused": {
+                  color: "#3b5b5a",
                   fontSize: "1.1rem",
-                  border: "1px solid #f5e4bd",
-                  backgroundColor: "#3b5b5a",
-                }}
-              >
-                {isLoading ? "Đang xử lý..." : "Xác nhận"}
-              </Button>
-            </form>
-          ) : (
-            <Grid container spacing={3}>
+                  fontWeight: 600,
+                },
+                "& .MuiOutlinedInput-root": {
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#3b5b5a",
+                    borderWidth: "2px",
+                  },
+                },
+              }}
+            />
+            <Button
+              fullWidth
+              variant="contained"
+              type="submit"
+              style={{
+                color: "white",
+                height: "48px",
+                fontSize: "1.1rem",
+                border: "1px solid #f5e4bd",
+                backgroundColor: "#3b5b5a",
+              }}
+            >
+              Xác nhận
+            </Button>
+          </form>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            width: "100%",
+            overflowY: "auto",
+          }}
+        >
+          <img src={imgBanner} alt="banner" />
+          <div
+            style={{
+              paddingBottom: "80px",
+              paddingLeft: "24px",
+              paddingRight: "24px",
+              margin: "auto",
+              maxWidth: "600px",
+            }}
+          >
+            <Grid container spacing={2}>
               {performances.map((performance) => (
-                <Grid item xs={12} sm={6} key={performance.id}>
+                <Grid item xs={12} key={performance.id}>
                   <Card
                     sx={{
                       cursor: "pointer",
                       transition: "transform 0.2s ease-in-out",
                       "&:hover": {
                         transform: "scale(1.02)",
-                        boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
                       },
                       backgroundColor: "white",
-                      border:
-                        selectedPerformance === performance.id
-                          ? "6px solid #f5e4bd"
-                          : "2px solid #3b5b5a",
-                      position: "relative",
+                      borderRadius: "20px",
                     }}
                     onClick={() => handlePerformanceClick(performance.id)}
                   >
-                    <CardContent
-                      sx={{
-                        padding: 0,
-                        display: "flex",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                      }}
-                    >
+                    <CardContent>
                       <img
                         src={img1}
                         alt="thumbnails"
@@ -176,51 +168,84 @@ export const Vote = () => {
                           width: "100%",
                           height: "200px",
                           objectFit: "cover",
-                          borderBottom: "2px solid #3b5b5a",
+                          borderRadius: "12px",
                         }}
                       />
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          padding: "16px",
-                          color: "#3b5b5a",
-                          fontWeight: 600,
-                          textAlign: "center",
-                          fontSize: "1.2rem",
+                      <div
+                        style={{
+                          marginTop: "16px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "12px",
                         }}
                       >
-                        {performance.name}
-                      </Typography>
-
-                      {selectedPerformance === performance.id && (
-                        <Button
-                          variant="contained"
-                          sx={{
-                            backgroundColor: "#3b5b5a",
-                            color: "#f5e4bd",
-                            margin: "auto",
-                            "&:hover": {
-                              backgroundColor: "#2a4344",
-                            },
+                        <div
+                          style={{
+                            minWidth: "28px",
+                            width: "28px",
+                            height: "28px",
+                            borderRadius: "8px",
+                            backgroundColor:
+                              selectedPerformance === performance.id
+                                ? "#3b5b5a"
+                                : "#f5e4bd",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
                           }}
-                          onClick={() => setOpenDialog(true)}
                         >
-                          Xác nhận vote
-                        </Button>
-                      )}
+                          {selectedPerformance === performance.id && (
+                            <Check size={20} color="white" />
+                          )}
+                        </div>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            width: "100%",
+                            color: "#3b5b5a",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {performance.name}
+                        </Typography>
+                      </div>
                     </CardContent>
                   </Card>
                 </Grid>
               ))}
             </Grid>
-          )}
-        </Paper>
-      </Container>
+          </div>
+        </div>
+      )}
+
+      {selectedPerformance && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: "#3b5b5a",
+            padding: "16px",
+            textAlign: "center",
+          }}
+        >
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: "#a74844", color: "white" }}
+            onClick={() => setOpenDialog(true)}
+          >
+            Xác nhận vote
+          </Button>
+        </div>
+      )}
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Xác nhận vote cho tiết mục {performancesName}</DialogTitle>
         <DialogContent>
-          Bạn có chắc chắn muốn vote cho tiết mục này?
+          Bạn có chắc chắn muốn vote ? Lựa chọn của bạn sẽ{" "}
+          <strong>không thể thay đổi</strong> sau khi xác nhận!
         </DialogContent>
         <DialogActions>
           <Button
@@ -232,12 +257,7 @@ export const Vote = () => {
           <Button
             onClick={handleVoteConfirm}
             variant="contained"
-            sx={{
-              backgroundColor: "#3b5b5a",
-              "&:hover": {
-                backgroundColor: "#2a4344",
-              },
-            }}
+            sx={{ backgroundColor: "#3b5b5a" }}
           >
             Xác nhận
           </Button>
@@ -245,24 +265,16 @@ export const Vote = () => {
       </Dialog>
 
       {isVoting && (
-        <div
-          style={{
+        <CircularProgress
+          sx={{
+            color: "#f5e4bd",
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
           }}
-        >
-          <CircularProgress size={60} thickness={4} sx={{ color: "#f5e4bd" }} />
-        </div>
+        />
       )}
-
       <ToastContainer position="top-right" />
     </div>
   );

@@ -1,13 +1,13 @@
 import React from "react";
 import Select from "react-select";
 
-export default function Controls({
-  selectedRound,
-  setSelectedRound,
-  rounds,
-  currentPrizeIndex,
-  setCurrentPrizeIndex,
+function CustomDropDown({
   prizes,
+  selectedPrize,
+  setSelectedPrize,
+  onPrizeSelect,
+  isLoading,
+  isSpinning,
 }) {
   const customStyles = {
     control: (provided) => ({
@@ -28,11 +28,40 @@ export default function Controls({
     }),
     menu: (provided) => ({
       ...provided,
-      maxWidth: "600px",
+      minWidth: "600px",
       whiteSpace: "normal",
       wordWrap: "break-word",
       backgroundColor: "#3b5b5a",
       zIndex: 10,
+      "&::-webkit-scrollbar": {
+        width: "8px",
+      },
+      "&::-webkit-scrollbar-track": {
+        background: "#3b5b5a",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        background: "#f5e4bd",
+        borderRadius: "4px",
+      },
+      "&::-webkit-scrollbar-thumb:hover": {
+        background: "#f5e4bd",
+      },
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      "&::-webkit-scrollbar": {
+        width: "8px",
+      },
+      "&::-webkit-scrollbar-track": {
+        background: "#3b5b5a",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        background: "#f5e4bd",
+        borderRadius: "4px",
+      },
+      "&::-webkit-scrollbar-thumb:hover": {
+        background: "#f5e4bd",
+      },
     }),
     option: (provided, state) => ({
       ...provided,
@@ -53,50 +82,32 @@ export default function Controls({
     }),
   };
 
-  const roundNamme = rounds.find((r) => r.id === selectedRound);
-  const currentPrize = prizes[currentPrizeIndex];
-
   return (
     <div className="controls">
-      <div className="custom-dropdown" title={roundNamme && roundNamme.name}>
+      <div className="custom-dropdown">
         <Select
-          value={roundNamme}
-          onChange={(selected) => setSelectedRound(selected.id)}
-          options={rounds}
-          getOptionLabel={(round) => `Giải ${round.name}`}
-          getOptionValue={(round) => round.id}
+          value={selectedPrize}
+          onChange={(selected) => {
+            setSelectedPrize(selected);
+            onPrizeSelect(selected);
+          }}
+          options={prizes}
+          getOptionLabel={(option) => option.name}
+          getOptionValue={(option) => option.id}
           styles={customStyles}
           menuPlacement="auto"
-        />
-      </div>
-
-      <div
-        className="custom-dropdown"
-        title={currentPrize && currentPrize.name}
-      >
-        <Select
-          value={currentPrize}
-          onChange={(selected) =>
-            setCurrentPrizeIndex(prizes.findIndex((p) => p.id === selected.id))
-          }
-          options={prizes}
-          getOptionLabel={(prize) => prize.name}
-          getOptionValue={(prize) => prize.id}
-          styles={{
-            ...customStyles,
-            menu: (provided) => ({
-              ...provided,
-              minWidth: "400px",
-              maxWidth: "600px",
-              whiteSpace: "normal",
-              wordWrap: "break-word",
-              backgroundColor: "#3b5b5a",
-              zIndex: 10,
-            }),
-          }}
-          menuPlacement="auto"
+          loadingMessage={() => (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div className="loading-spinner"></div>
+            </div>
+          )}
+          placeholder={isLoading ? "Loading..." : "Chọn giải thưởng"}
+          isLoading={isLoading}
+          isDisabled={isLoading || isSpinning}
         />
       </div>
     </div>
   );
 }
+
+export default CustomDropDown;
