@@ -34,10 +34,10 @@ const Component = () => {
         </Helmet>
 
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/result" element={<Result />} />
-          <Route path="/vote" element={<Vote />} />
+          <Route path="/" element={<Vote />} />
           <Route path="/vote-result" element={<VoteResult />} />
+          <Route path="/result" element={<Result />} />
+          <Route path="/lucky-draw" element={<Home />} />
         </Routes>
       </div>
     </ResultProvider>

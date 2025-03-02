@@ -52,3 +52,22 @@
   border-radius: 4px;
   transition: width 0.5s ease-in-out;
 }
+
+@media (max-width: 768px) {
+  .vote-container {
+    width: 90%;
+    padding: 12px 20px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .vote-count {
+    font-size: 16px;
+  }
+
+  .vote-info {
+    font-size: 18px;
+  }
+}

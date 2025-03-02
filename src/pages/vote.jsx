@@ -18,6 +18,7 @@ import "react-toastify/dist/ReactToastify.css";
 import img1 from "../assets/images/1.jpeg";
 import imgBanner from "../assets/images/img-banner.jpg";
 import { Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const Vote = () => {
   const API_BASE_URL = "https://koi-lottery-api.azurewebsites.net";
@@ -28,12 +29,22 @@ export const Vote = () => {
   const [isVoting, setIsVoting] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchPerformances();
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!phoneNumber) {
+      toast.error("Vui lòng nhập số vé");
+      return;
+    }
+    if (!/^[0-9]+$/.test(phoneNumber)) {
+      toast.error("Số vé chỉ được phép nhập số");
+      return;
+    }
     setIsVerified(true);
   };
 
@@ -53,6 +64,7 @@ export const Vote = () => {
       );
       toast.success("Bạn đã vote thành công cho tiết mục " + performancesName);
       setSelectedPerformance(null);
+      navigate("/vote-result");
     } catch (error) {
       toast.error("Bạn đã hết lượt vote!");
     } finally {
@@ -74,8 +86,8 @@ export const Vote = () => {
       {!isVerified ? (
         <div
           style={{
-            padding: "2rem",
-            maxWidth: "400px",
+            padding: "1.5rem",
+            width: "400px",
             margin: "auto",
             backgroundColor: "rgba(255, 255, 255, 0.5)",
             borderRadius: "12px",
@@ -156,24 +168,13 @@ export const Vote = () => {
                         transform: "scale(1.02)",
                       },
                       backgroundColor: "white",
-                      borderRadius: "20px",
+                      borderRadius: "12px",
                     }}
                     onClick={() => handlePerformanceClick(performance.id)}
                   >
-                    <CardContent>
-                      <img
-                        src={img1}
-                        alt="thumbnails"
-                        style={{
-                          width: "100%",
-                          height: "200px",
-                          objectFit: "cover",
-                          borderRadius: "12px",
-                        }}
-                      />
+                    <CardContent sx={{ padding: "12px 20px !important" }}>
                       <div
                         style={{
-                          marginTop: "16px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",

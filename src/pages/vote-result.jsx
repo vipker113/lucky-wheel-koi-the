@@ -26,8 +26,6 @@ export const VoteResult = () => {
     }
   };
 
-  console.log(votes);
-
   return (
     <div className="vote-result-page">
       <div className="vote-container">

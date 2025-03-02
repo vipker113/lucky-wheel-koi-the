@@ -5,9 +5,7 @@ import axios from "axios";
 import useWindowSize from "../hook/useWindowSize";
 import CustomDropDown from "./CustomDropdown";
 import {
-  Button,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
@@ -59,6 +57,19 @@ const LuckyWheel = ({ prizes, onSpinComplete, isLoading }) => {
     let allResults = [];
     let lastResult;
 
+    const animationInterval = 20;
+    const fakeAnimations = [null, null, null];
+
+    fakeAnimations.forEach((_, index) => {
+      fakeAnimations[index] = setInterval(() => {
+        setResult((prev) => {
+          const newResult = [...prev];
+          newResult[index] = Math.floor(Math.random() * 10).toString();
+          return newResult;
+        });
+      }, animationInterval);
+    });
+
     try {
       for (let i = 0; i < remainingSpins; i++) {
         const { data } = await axios.post(
@@ -69,8 +80,9 @@ const LuckyWheel = ({ prizes, onSpinComplete, isLoading }) => {
         setSpinCount((prev) => prev + 1);
       }
 
+      fakeAnimations.forEach((interval) => clearInterval(interval));
+
       const newTargetNum = lastResult.id.toString().padStart(3, "0");
-      const animationInterval = 20;
       const animations = [null, null, null];
 
       newTargetNum.split("").forEach((_, index) => {
@@ -117,6 +129,7 @@ const LuckyWheel = ({ prizes, onSpinComplete, isLoading }) => {
       }, 4000);
     } catch (error) {
       console.error("Error spinning wheel:", error);
+      fakeAnimations.forEach((interval) => clearInterval(interval));
       setIsSpinning(false);
     }
   };
